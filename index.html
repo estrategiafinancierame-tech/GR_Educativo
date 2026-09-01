@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen Grupo — Ingresos y Gastos por Empresa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --paper:#F7F9F6;
+    --line:#DCE5DC;
+    --ink:#16261C;
+    --ink-soft:#5B6E5F;
+    --verde:#1F6D3F;
+    --verde-oscuro:#134A2A;
+    --verde-suave:#E1F0E4;
+    --gasto:#9A5A28;
+    --gasto-suave:#F3E4D3;
+    --card:#FFFFFF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', Georgia, serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px;}
+
+  header{
+    border-bottom:2px solid var(--verde-oscuro);
+    padding-bottom:14px;
+    margin-bottom:20px;
+  }
+  header h1{font-size:1.5rem;font-weight:600;margin:0 0 4px;color:var(--verde-oscuro);}
+  header .meta{font-family:'IBM Plex Mono',monospace;font-size:0.76rem;color:var(--ink-soft);}
+
+  /* Selector de empresa */
+  .entity-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:22px;
+    flex-wrap:wrap;
+  }
+  .entity-tabs button{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:0.82rem;
+    padding:9px 16px;
+    border:1.5px solid var(--verde);
+    background:var(--card);
+    color:var(--verde-oscuro);
+    border-radius:20px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .entity-tabs button:hover{background:var(--verde-suave);}
+  .entity-tabs button.active{
+    background:var(--verde);
+    color:#fff;
+  }
+
+  .kpis{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+    margin-bottom:26px;
+  }
+  .kpi{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:16px 18px;
+  }
+  .kpi .label{font-size:0.8rem;color:var(--ink-soft);margin-bottom:6px;}
+  .kpi .value{font-family:'IBM Plex Mono',monospace;font-size:1.4rem;font-weight:600;}
+  .kpi.ingreso{border-left:4px solid var(--verde);}
+  .kpi.gasto{border-left:4px solid var(--gasto);}
+  .kpi.resultado{border-left:4px solid var(--verde-oscuro);}
+  .kpi .sub{font-size:0.72rem;color:var(--ink-soft);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+
+  section{margin-bottom:30px;}
+  h2{
+    font-size:1rem;
+    font-weight:600;
+    margin:0 0 12px;
+    padding-bottom:8px;
+    border-bottom:1px solid var(--line);
+    color:var(--verde-oscuro);
+  }
+
+  .chart-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:18px;
+  }
+  .chart-card canvas{max-height:280px;}
+
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+    font-size:0.86rem;
+    min-width:560px;
+  }
+  thead th{
+    text-align:right;
+    padding:9px 12px;
+    background:var(--verde-suave);
+    border-bottom:1px solid var(--line);
+    font-weight:600;
+    font-size:0.76rem;
+    color:var(--verde-oscuro);
+    font-family:'IBM Plex Mono',monospace;
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{
+    padding:8px 12px;
+    border-bottom:1px solid var(--line);
+    text-align:right;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  tbody td:first-child{text-align:left;font-family:'Source Serif 4',serif;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.total td{font-weight:700;background:#FAFCF8;}
+
+  footer{
+    font-size:0.76rem;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:16px;
+  }
+
+  @media (max-width:640px){
+    .wrap{padding:18px 12px 40px;}
+    .kpis{grid-template-columns:1fr;gap:10px;}
+    .kpi{padding:13px 15px;}
+    .kpi .value{font-size:1.2rem;}
+    header h1{font-size:1.2rem;}
+    .chart-card{padding:12px;}
+    .chart-card canvas{max-height:220px;}
+    table{font-size:0.78rem;}
+    thead th, tbody td{padding:7px 9px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Resumen Grupo — Ingresos y Gastos</h1>
+    <div class="meta">Datos consolidados · 2025 vs. 2026 (a junio)</div>
+  </header>
+
+  <div class="entity-tabs" id="entityTabs"></div>
+
+  <div class="kpis">
+    <div class="kpi ingreso">
+      <div class="label">Ingresos acumulados 2026</div>
+      <div class="value" id="kpiIngresos">—</div>
+      <div class="sub" id="kpiIngresosSub">vs. 2025</div>
+    </div>
+    <div class="kpi gasto">
+      <div class="label">Gastos totales 2026 (5+6+7)</div>
+      <div class="value" id="kpiGastos">—</div>
+      <div class="sub" id="kpiGastosSub">vs. 2025</div>
+    </div>
+    <div class="kpi resultado">
+      <div class="label">Resultado acumulado</div>
+      <div class="value" id="kpiResultado">—</div>
+      <div class="sub">Ingresos − gastos totales</div>
+    </div>
+  </div>
+
+  <section>
+    <h2>Ingresos vs. gastos por mes — 2026</h2>
+    <div class="chart-card">
+      <canvas id="chartMensual"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Detalle por clase de cuenta</h2>
+    <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>Clase de cuenta</th>
+          <th>Acum. 2026</th>
+          <th>Acum. 2025</th>
+          <th>Variación</th>
+        </tr>
+      </thead>
+      <tbody id="tablaClases"></tbody>
+    </table>
+    </div>
+  </section>
+
+  <footer>Fuente: consolidado contable del grupo · cifras en pesos colombianos.</footer>
+</div>
+
+<script>
+const DATA = {"CORPORACION LICEO LA SABANA": {"2025": {"4": [1168402914, 839147410, 863615082, 794144313, 790141000, 837852000, 797180156, 790850003, 845565000, 825961000, 915190346, 44186335], "5": [244608323, 285103824, 267413031, 285296389, 248394449, 254016563, 281286041, 348788851, 248285945, 287693365, 257016742, 528278945], "6": [12382865, 44109345, 40713213, 35945942, 44233491, 30879485, 40981599, 35882008, 41262484, 36980985, 30794293, 1958600], "7": [185364928, 423561722, 586404873, 386731621, 436860859, 373484736, 382473371, 398660183, 461344807, 454093668, 491074623, 587135726]}, "2026": {"4": [1364092343, 1114345867, 1047573054, 976523414, 954211984, 990000880, 0, 0, 0, 0, 0, 0], "5": [180922623, 370815702, 322972596, 320503715, 301014091, 269316435, 0, 0, 0, 0, 0, 0], "6": [14742192, 43316345, 46925829, 44417037, 45102792, 36645189, 0, 0, 0, 0, 0, 0], "7": [190022848, 502983312, 506402613, 457718917, 544088044, 425139705, 0, 0, 0, 0, 0, 0]}}, "GIMNASIO SAN ANGELO SAS": {"2025": {"4": [1545094132, 1391469000, 1381295868, 1384061000, 1320197000, 1255804000, 1388967000, 1296533000, 1393236669, 1456343227, 849942237, 529034833], "5": [448745456, 548185453, 615464850, 534110352, 528942228, 544692356, 706297316, 415637303, 535523176, 569569657, 526833111, 141612611], "6": [24921664, 81106462, 90792911, 52296860, 86401619, 34789656, 68554150, 68274931, 84176835, 53586479, 48723459, 13045954], "7": [553967179, 778227649, 858345403, 748644181, 783527574, 641180764, 750088949, 739312332, 799525132, 723493968, 767193554, 198959285]}, "2026": {"4": [1569657486, 1321622325, 1451684493, 1357814213, 1396753900, 1291597343, 0, 0, 0, 0, 0, 0], "5": [446583953, 660244129, 625250281, 558562070, 586749914, 513250275, 0, 0, 0, 0, 0, 0], "6": [19344446, 75672906, 61248758, 53515274, 82534975, 46544838, 0, 0, 0, 0, 0, 0], "7": [428499357, 732368226, 694967205, 664517269, 727098163, 581821890, 0, 0, 0, 0, 0, 0]}}, "JARDIN CAMPESTRE DEL NORTE S.A.S.": {"2025": {"4": [1241510000, 924280621, 834014665, 824500000, 860053589, 1033138662, 896456278, 865599540, 853966206, 835608371, 843019000, 436697195], "5": [230576869, 311274039, 310164489, 288935522, 375216065, 361951311, 328412132, 342824462, 454824229, 493247646, 352615057, 1010141483], "6": [39341441, 35241993, 41179476, 42108310, 47204757, 37345128, 45322613, 44527669, 52572129, 44167664, 58698673, 23120337], "7": [281858791, 349793389, 370309185, 365461633, 391029943, 318738325, 405997110, 392616946, 389476627, 403359456, 486440752, 386484865]}, "2026": {"4": [1543792891, 1154569000, 989260961, 1004770453, 993218000, 1175174331, 0, 0, 0, 0, 0, 0], "5": [292344866, 383135297, 434601668, 519636766, 367759683, 757577798, 0, 0, 0, 0, 0, 0], "6": [33768304, 49000409, 47266247, 48041167, 53035880, 45903716, 0, 0, 0, 0, 0, 0], "7": [244612376, 490222265, 521160743, 452868099, 494544380, 411245335, 0, 0, 0, 0, 0, 0]}}};
+
+const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+const clases = {
+  "4": {nombre:"Ingresos", tipo:"ingreso"},
+  "5": {nombre:"Gastos administrativos", tipo:"gasto"},
+  "6": {nombre:"Costo de ventas", tipo:"gasto"},
+  "7": {nombre:"Costo de servicios", tipo:"gasto"}
+};
+const empresas = Object.keys(DATA);
+const fmt = n => "$" + Math.round(n).toLocaleString("es-CO");
+const fmtPct = n => (n>=0?"+":"") + (n*100).toFixed(1) + "%";
+
+let chart = null;
+let activeEmpresa = empresas[0];
+
+function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
+
+function render(empresa){
+  activeEmpresa = empresa;
+  document.querySelectorAll('.entity-tabs button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.empresa === empresa);
+  });
+
+  const d26 = DATA[empresa]["2026"];
+  const d25 = DATA[empresa]["2025"];
+
+  const ingresos26 = sum(d26["4"]);
+  const ingresos25 = sum(d25["4"]);
+  const gastos26 = sum(d26["5"]) + sum(d26["6"]) + sum(d26["7"]);
+  const gastos25 = sum(d25["5"]) + sum(d25["6"]) + sum(d25["7"]);
+
+  document.getElementById("kpiIngresos").textContent = fmt(ingresos26);
+  document.getElementById("kpiIngresosSub").textContent = fmtPct((ingresos26-ingresos25)/ingresos25) + " vs. 2025";
+  document.getElementById("kpiGastos").textContent = fmt(gastos26);
+  document.getElementById("kpiGastosSub").textContent = fmtPct((gastos26-gastos25)/gastos25) + " vs. 2025";
+  document.getElementById("kpiResultado").textContent = fmt(ingresos26-gastos26);
+
+  // Chart: monthly ingresos vs gastos (2026, meses con datos)
+  const mesesConDatos = meses.filter((m,i)=> d26["4"][i] !== 0 || sum(["5","6","7"].map(c=>d26[c][i])) !== 0);
+  const idxConDatos = mesesConDatos.map(m=>meses.indexOf(m));
+  const ingresosSerie = idxConDatos.map(i=>d26["4"][i]);
+  const gastosSerie = idxConDatos.map(i=> d26["5"][i]+d26["6"][i]+d26["7"][i]);
+
+  if(chart) chart.destroy();
+  chart = new Chart(document.getElementById("chartMensual"), {
+    type:"bar",
+    data:{
+      labels: mesesConDatos,
+      datasets:[
+        {label:"Ingresos", data: ingresosSerie, backgroundColor:"#1F6D3F", borderRadius:3},
+        {label:"Gastos totales", data: gastosSerie, backgroundColor:"#9A5A28", borderRadius:3}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{ position:"bottom", labels:{ font:{family:"IBM Plex Mono", size:11} } } },
+      scales:{
+        y:{ ticks:{ callback:v=>"$"+(v/1e6).toFixed(0)+"M", font:{family:"IBM Plex Mono", size:10} }, grid:{color:"#DCE5DC"} },
+        x:{ ticks:{ font:{family:"IBM Plex Mono", size:10} }, grid:{display:false} }
+      }
+    }
+  });
+
+  // Tabla por clase
+  const tbody = document.getElementById("tablaClases");
+  tbody.innerHTML = "";
+  Object.keys(clases).forEach(c=>{
+    const v26 = sum(d26[c]);
+    const v25 = sum(d25[c]);
+    const variacion = v25 !== 0 ? (v26-v25)/v25 : 0;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${clases[c].nombre}</td>
+      <td>${fmt(v26)}</td>
+      <td>${fmt(v25)}</td>
+      <td style="color:${variacion>=0 ? (clases[c].tipo==='ingreso'?'#1F6D3F':'#9A5A28') : (clases[c].tipo==='ingreso'?'#9A5A28':'#1F6D3F')}">${fmtPct(variacion)}</td>`;
+    tbody.appendChild(tr);
+  });
+  const trTotal = document.createElement("tr");
+  trTotal.className = "total";
+  trTotal.innerHTML = `
+    <td>Resultado (Ingresos − Gastos)</td>
+    <td>${fmt(ingresos26-gastos26)}</td>
+    <td>${fmt(ingresos25-gastos25)}</td>
+    <td>—</td>`;
+  tbody.appendChild(trTotal);
+}
+
+// Build entity tabs
+const tabsWrap = document.getElementById("entityTabs");
+empresas.forEach((emp, i)=>{
+  const btn = document.createElement("button");
+  btn.textContent = emp;
+  btn.dataset.empresa = emp;
+  if(i===0) btn.classList.add("active");
+  btn.onclick = ()=>render(emp);
+  tabsWrap.appendChild(btn);
+});
+
+render(activeEmpresa);
+</script>
+</body>
+</html>
