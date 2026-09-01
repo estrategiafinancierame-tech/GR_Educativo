@@ -3,151 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Resumen Grupo — Ingresos y Gastos por Empresa</title>
+<title>Resumen Financiero del Grupo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
   :root{
+    --accent:#275CAB;
+    --accent-dark:#193B6F;
+    --accent-soft:#E5EBF4;
     --paper:#F7F9F6;
-    --line:#DCE5DC;
+    --line:#DCE2DC;
     --ink:#16261C;
     --ink-soft:#5B6E5F;
-    --verde:#1F6D3F;
-    --verde-oscuro:#134A2A;
-    --verde-suave:#E1F0E4;
     --gasto:#9A5A28;
-    --gasto-suave:#F3E4D3;
+    --gasto-soft:#F3E4D3;
     --card:#FFFFFF;
+    --font-display:'Source Serif 4', Georgia, serif;
+    --font-mono:'IBM Plex Mono', monospace;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:var(--paper);
-    color:var(--ink);
-    font-family:'Source Serif 4', Georgia, serif;
-    -webkit-font-smoothing:antialiased;
-  }
-  .wrap{max-width:1100px;margin:0 auto;padding:28px 18px 60px;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-display);-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 18px 60px;}
 
-  header{
-    border-bottom:2px solid var(--verde-oscuro);
-    padding-bottom:14px;
-    margin-bottom:20px;
-  }
-  header h1{font-size:1.5rem;font-weight:600;margin:0 0 4px;color:var(--verde-oscuro);}
-  header .meta{font-family:'IBM Plex Mono',monospace;font-size:0.76rem;color:var(--ink-soft);}
+  header{border-bottom:2px solid var(--accent-dark);padding-bottom:14px;margin-bottom:18px;}
+  header h1{font-size:1.5rem;font-weight:600;margin:0 0 4px;color:var(--accent-dark);}
+  header .meta{font-family:var(--font-mono);font-size:0.76rem;color:var(--ink-soft);}
 
-  /* Selector de empresa */
-  .entity-tabs{
-    display:flex;
-    gap:8px;
-    margin-bottom:22px;
-    flex-wrap:wrap;
+  /* ============ Estilos de pestañas (TAB_STYLE) ============ */
+  .tabs{display:flex;gap:6px;margin-bottom:22px;flex-wrap:wrap;}
+  .tabs button{font-family:var(--font-mono);font-size:0.8rem;cursor:pointer;background:none;}
+
+  .tabs.style-underline{border-bottom:1px solid var(--line);}
+  .tabs.style-underline button{
+    padding:10px 16px;border:none;color:var(--ink-soft);
+    border-bottom:2.5px solid transparent;margin-bottom:-1px;
   }
+  .tabs.style-underline button:hover{color:var(--accent-dark);}
+  .tabs.style-underline button.active{color:var(--accent-dark);border-bottom-color:var(--accent);font-weight:600;}
+
+  .tabs.style-pill button{
+    padding:9px 16px;border:1.5px solid var(--accent);border-radius:20px;color:var(--accent-dark);background:var(--card);
+    transition:background .15s ease,color .15s ease;
+  }
+  .tabs.style-pill button:hover{background:var(--accent-soft);}
+  .tabs.style-pill button.active{background:var(--accent);color:#fff;}
+
+  .tabs.style-boxed button{
+    padding:9px 16px;border:1px solid var(--line);border-radius:6px;color:var(--ink-soft);background:var(--card);
+  }
+  .tabs.style-boxed button:hover{border-color:var(--accent);color:var(--accent-dark);}
+  .tabs.style-boxed button.active{border-color:var(--accent-dark);background:var(--accent-soft);color:var(--accent-dark);font-weight:600;}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  .entity-tabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
   .entity-tabs button{
-    font-family:'IBM Plex Mono',monospace;
-    font-size:0.82rem;
-    padding:9px 16px;
-    border:1.5px solid var(--verde);
-    background:var(--card);
-    color:var(--verde-oscuro);
-    border-radius:20px;
-    cursor:pointer;
-    transition:background .15s ease, color .15s ease;
+    font-family:var(--font-mono);font-size:0.8rem;padding:8px 14px;
+    border:1.5px solid var(--accent);background:var(--card);color:var(--accent-dark);
+    border-radius:20px;cursor:pointer;transition:background .15s ease,color .15s ease;
   }
-  .entity-tabs button:hover{background:var(--verde-suave);}
-  .entity-tabs button.active{
-    background:var(--verde);
-    color:#fff;
-  }
+  .entity-tabs button:hover{background:var(--accent-soft);}
+  .entity-tabs button.active{background:var(--accent);color:#fff;}
+  .entity-tabs button.todas{border-style:dashed;}
 
-  .kpis{
-    display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:12px;
-    margin-bottom:26px;
-  }
-  .kpi{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:16px 18px;
-  }
-  .kpi .label{font-size:0.8rem;color:var(--ink-soft);margin-bottom:6px;}
-  .kpi .value{font-family:'IBM Plex Mono',monospace;font-size:1.4rem;font-weight:600;}
-  .kpi.ingreso{border-left:4px solid var(--verde);}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:24px;}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:15px 17px;}
+  .kpi .label{font-size:0.78rem;color:var(--ink-soft);margin-bottom:6px;}
+  .kpi .value{font-family:var(--font-mono);font-size:1.3rem;font-weight:600;}
+  .kpi.ingreso{border-left:4px solid var(--accent);}
   .kpi.gasto{border-left:4px solid var(--gasto);}
-  .kpi.resultado{border-left:4px solid var(--verde-oscuro);}
-  .kpi .sub{font-size:0.72rem;color:var(--ink-soft);margin-top:4px;font-family:'IBM Plex Mono',monospace;}
+  .kpi.resultado{border-left:4px solid var(--accent-dark);}
+  .kpi .sub{font-size:0.7rem;color:var(--ink-soft);margin-top:4px;font-family:var(--font-mono);}
 
-  section{margin-bottom:30px;}
-  h2{
-    font-size:1rem;
-    font-weight:600;
-    margin:0 0 12px;
-    padding-bottom:8px;
-    border-bottom:1px solid var(--line);
-    color:var(--verde-oscuro);
-  }
+  section{margin-bottom:28px;}
+  h2{font-size:0.98rem;font-weight:600;margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid var(--line);color:var(--accent-dark);}
 
-  .chart-card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:6px;
-    padding:18px;
+  .chart-card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:18px;}
+  .chart-card canvas{max-height:300px;}
+
+  /* ============ Filtros / slicers (panel general) ============ */
+  .filter-bar{
+    display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;
+    background:var(--card);border:1px solid var(--line);border-radius:6px;
+    padding:14px 16px;margin-bottom:20px;
   }
-  .chart-card canvas{max-height:280px;}
+  .filter-group{display:flex;flex-direction:column;gap:4px;}
+  .filter-group label{font-family:var(--font-mono);font-size:0.7rem;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.03em;}
+  .filter-group select, .filters select, .filters input{
+    font-family:var(--font-mono);font-size:0.8rem;padding:7px 10px;
+    border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);
+  }
+  .filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
 
   .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
-  table{
-    width:100%;
-    border-collapse:collapse;
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:6px;
-    overflow:hidden;
-    font-size:0.86rem;
-    min-width:560px;
-  }
-  thead th{
-    text-align:right;
-    padding:9px 12px;
-    background:var(--verde-suave);
-    border-bottom:1px solid var(--line);
-    font-weight:600;
-    font-size:0.76rem;
-    color:var(--verde-oscuro);
-    font-family:'IBM Plex Mono',monospace;
-  }
-  thead th:first-child{text-align:left;}
-  tbody td{
-    padding:8px 12px;
-    border-bottom:1px solid var(--line);
-    text-align:right;
-    font-family:'IBM Plex Mono',monospace;
-  }
-  tbody td:first-child{text-align:left;font-family:'Source Serif 4',serif;}
+  table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:6px;overflow:hidden;font-size:0.85rem;min-width:640px;}
+  thead th{text-align:right;padding:9px 12px;background:var(--accent-soft);border-bottom:1px solid var(--line);font-weight:600;font-size:0.74rem;color:var(--accent-dark);font-family:var(--font-mono);}
+  thead th:first-child, thead th:nth-child(2), thead th:nth-child(3){text-align:left;}
+  tbody td{padding:8px 12px;border-bottom:1px solid var(--line);text-align:right;font-family:var(--font-mono);}
+  tbody td:first-child, tbody td:nth-child(2), tbody td:nth-child(3){text-align:left;font-family:var(--font-display);}
   tbody tr:last-child td{border-bottom:none;}
-  tbody tr.total td{font-weight:700;background:#FAFCF8;}
+  tbody tr:hover{background:#FAFCF8;}
 
-  footer{
-    font-size:0.76rem;
-    color:var(--ink-soft);
-    text-align:center;
-    margin-top:16px;
-  }
+  footer{font-size:0.76rem;color:var(--ink-soft);text-align:center;margin-top:16px;}
 
   @media (max-width:640px){
-    .wrap{padding:18px 12px 40px;}
+    .wrap{padding:16px 10px 40px;}
     .kpis{grid-template-columns:1fr;gap:10px;}
-    .kpi{padding:13px 15px;}
-    .kpi .value{font-size:1.2rem;}
     header h1{font-size:1.2rem;}
     .chart-card{padding:12px;}
     .chart-card canvas{max-height:220px;}
-    table{font-size:0.78rem;}
-    thead th, tbody td{padding:7px 9px;}
+    table{font-size:0.76rem;}
+    thead th, tbody td{padding:7px 8px;}
+    .tabs{overflow-x:auto;flex-wrap:nowrap;}
+    .tabs button{white-space:nowrap;}
+    .filter-bar{flex-direction:column;align-items:stretch;}
   }
 </style>
 </head>
@@ -155,159 +126,459 @@
 <div class="wrap">
 
   <header>
-    <h1>Resumen Grupo — Ingresos y Gastos</h1>
-    <div class="meta">Datos consolidados · 2025 vs. 2026 (a junio)</div>
+    <h1>Resumen Financiero del Grupo</h1>
+    <div class="meta">3 empresas · 2025 vs. 2026</div>
   </header>
 
-  <div class="entity-tabs" id="entityTabs"></div>
+  <div class="tabs style-underline" id="mainTabs"></div>
 
-  <div class="kpis">
-    <div class="kpi ingreso">
-      <div class="label">Ingresos acumulados 2026</div>
-      <div class="value" id="kpiIngresos">—</div>
-      <div class="sub" id="kpiIngresosSub">vs. 2025</div>
-    </div>
-    <div class="kpi gasto">
-      <div class="label">Gastos totales 2026 (5+6+7)</div>
-      <div class="value" id="kpiGastos">—</div>
-      <div class="sub" id="kpiGastosSub">vs. 2025</div>
-    </div>
-    <div class="kpi resultado">
-      <div class="label">Resultado acumulado</div>
-      <div class="value" id="kpiResultado">—</div>
-      <div class="sub">Ingresos − gastos totales</div>
-    </div>
-  </div>
+  <div id="panels"></div>
 
-  <section>
-    <h2>Ingresos vs. gastos por mes — 2026</h2>
-    <div class="chart-card">
-      <canvas id="chartMensual"></canvas>
-    </div>
-  </section>
-
-  <section>
-    <h2>Detalle por clase de cuenta</h2>
-    <div class="table-scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>Clase de cuenta</th>
-          <th>Acum. 2026</th>
-          <th>Acum. 2025</th>
-          <th>Variación</th>
-        </tr>
-      </thead>
-      <tbody id="tablaClases"></tbody>
-    </table>
-    </div>
-  </section>
-
-  <footer>Fuente: consolidado contable del grupo · cifras en pesos colombianos.</footer>
+  <footer>Generado automáticamente desde el archivo de datos consolidados.</footer>
 </div>
 
 <script>
-const DATA = {"CORPORACION LICEO LA SABANA": {"2025": {"4": [1168402914, 839147410, 863615082, 794144313, 790141000, 837852000, 797180156, 790850003, 845565000, 825961000, 915190346, 44186335], "5": [244608323, 285103824, 267413031, 285296389, 248394449, 254016563, 281286041, 348788851, 248285945, 287693365, 257016742, 528278945], "6": [12382865, 44109345, 40713213, 35945942, 44233491, 30879485, 40981599, 35882008, 41262484, 36980985, 30794293, 1958600], "7": [185364928, 423561722, 586404873, 386731621, 436860859, 373484736, 382473371, 398660183, 461344807, 454093668, 491074623, 587135726]}, "2026": {"4": [1364092343, 1114345867, 1047573054, 976523414, 954211984, 990000880, 0, 0, 0, 0, 0, 0], "5": [180922623, 370815702, 322972596, 320503715, 301014091, 269316435, 0, 0, 0, 0, 0, 0], "6": [14742192, 43316345, 46925829, 44417037, 45102792, 36645189, 0, 0, 0, 0, 0, 0], "7": [190022848, 502983312, 506402613, 457718917, 544088044, 425139705, 0, 0, 0, 0, 0, 0]}}, "GIMNASIO SAN ANGELO SAS": {"2025": {"4": [1545094132, 1391469000, 1381295868, 1384061000, 1320197000, 1255804000, 1388967000, 1296533000, 1393236669, 1456343227, 849942237, 529034833], "5": [448745456, 548185453, 615464850, 534110352, 528942228, 544692356, 706297316, 415637303, 535523176, 569569657, 526833111, 141612611], "6": [24921664, 81106462, 90792911, 52296860, 86401619, 34789656, 68554150, 68274931, 84176835, 53586479, 48723459, 13045954], "7": [553967179, 778227649, 858345403, 748644181, 783527574, 641180764, 750088949, 739312332, 799525132, 723493968, 767193554, 198959285]}, "2026": {"4": [1569657486, 1321622325, 1451684493, 1357814213, 1396753900, 1291597343, 0, 0, 0, 0, 0, 0], "5": [446583953, 660244129, 625250281, 558562070, 586749914, 513250275, 0, 0, 0, 0, 0, 0], "6": [19344446, 75672906, 61248758, 53515274, 82534975, 46544838, 0, 0, 0, 0, 0, 0], "7": [428499357, 732368226, 694967205, 664517269, 727098163, 581821890, 0, 0, 0, 0, 0, 0]}}, "JARDIN CAMPESTRE DEL NORTE S.A.S.": {"2025": {"4": [1241510000, 924280621, 834014665, 824500000, 860053589, 1033138662, 896456278, 865599540, 853966206, 835608371, 843019000, 436697195], "5": [230576869, 311274039, 310164489, 288935522, 375216065, 361951311, 328412132, 342824462, 454824229, 493247646, 352615057, 1010141483], "6": [39341441, 35241993, 41179476, 42108310, 47204757, 37345128, 45322613, 44527669, 52572129, 44167664, 58698673, 23120337], "7": [281858791, 349793389, 370309185, 365461633, 391029943, 318738325, 405997110, 392616946, 389476627, 403359456, 486440752, 386484865]}, "2026": {"4": [1543792891, 1154569000, 989260961, 1004770453, 993218000, 1175174331, 0, 0, 0, 0, 0, 0], "5": [292344866, 383135297, 434601668, 519636766, 367759683, 757577798, 0, 0, 0, 0, 0, 0], "6": [33768304, 49000409, 47266247, 48041167, 53035880, 45903716, 0, 0, 0, 0, 0, 0], "7": [244612376, 490222265, 521160743, 452868099, 494544380, 411245335, 0, 0, 0, 0, 0, 0]}}};
+const DATA = {"empresas": ["CORPORACION LICEO LA SABANA", "GIMNASIO SAN ANGELO SAS", "JARDIN CAMPESTRE DEL NORTE S.A.S."], "empresasDisplay": {"CORPORACION LICEO LA SABANA": "CORPORACION LICEO LA SABANA", "GIMNASIO SAN ANGELO SAS": "GIMNASIO SAN ANGELO SAS", "JARDIN CAMPESTRE DEL NORTE S.A.S.": "JARDIN CAMPESTRE DEL NORTE S.A.S."}, "anios": [2025, 2026], "mensual": {"CORPORACION LICEO LA SABANA": {"2025": {"4": [1168402914, 839147410, 863615082, 794144313, 790141000, 837852000, 797180156, 790850003, 845565000, 825961000, 915190346, 44186335], "5": [244608323, 285103824, 267413031, 285296389, 248394449, 254016563, 281286041, 348788851, 248285945, 287693365, 257016742, 528278945], "6": [12382865, 44109345, 40713213, 35945942, 44233491, 30879485, 40981599, 35882008, 41262484, 36980985, 30794293, 1958600], "7": [185364928, 423561722, 586404873, 386731621, 436860859, 373484736, 382473371, 398660183, 461344807, 454093668, 491074623, 587135726]}, "2026": {"4": [1364092343, 1114345867, 1047573054, 976523414, 954211984, 990000880, 0, 0, 0, 0, 0, 0], "5": [180922623, 370815702, 322972596, 320503715, 301014091, 269316435, 0, 0, 0, 0, 0, 0], "6": [14742192, 43316345, 46925829, 44417037, 45102792, 36645189, 0, 0, 0, 0, 0, 0], "7": [190022848, 502983312, 506402613, 457718917, 544088044, 425139705, 0, 0, 0, 0, 0, 0]}}, "GIMNASIO SAN ANGELO SAS": {"2025": {"4": [1545094132, 1391469000, 1381295868, 1384061000, 1320197000, 1255804000, 1388967000, 1296533000, 1393236669, 1456343227, 849942237, 529034833], "5": [448745456, 548185453, 615464850, 534110352, 528942228, 544692356, 706297316, 415637303, 535523176, 569569657, 526833111, 141612611], "6": [24921664, 81106462, 90792911, 52296860, 86401619, 34789656, 68554150, 68274931, 84176835, 53586479, 48723459, 13045954], "7": [553967179, 778227649, 858345403, 748644181, 783527574, 641180764, 750088949, 739312332, 799525132, 723493968, 767193554, 198959285]}, "2026": {"4": [1569657486, 1321622325, 1451684493, 1357814213, 1396753900, 1291597343, 0, 0, 0, 0, 0, 0], "5": [446583953, 660244129, 625250281, 558562070, 586749914, 513250275, 0, 0, 0, 0, 0, 0], "6": [19344446, 75672906, 61248758, 53515274, 82534975, 46544838, 0, 0, 0, 0, 0, 0], "7": [428499357, 732368226, 694967205, 664517269, 727098163, 581821890, 0, 0, 0, 0, 0, 0]}}, "JARDIN CAMPESTRE DEL NORTE S.A.S.": {"2025": {"4": [1241510000, 924280621, 834014665, 824500000, 860053589, 1033138662, 896456278, 865599540, 853966206, 835608371, 843019000, 436697195], "5": [230576869, 311274039, 310164489, 288935522, 375216065, 361951311, 328412132, 342824462, 454824229, 493247646, 352615057, 1010141483], "6": [39341441, 35241993, 41179476, 42108310, 47204757, 37345128, 45322613, 44527669, 52572129, 44167664, 58698673, 23120337], "7": [281858791, 349793389, 370309185, 365461633, 391029943, 318738325, 405997110, 392616946, 389476627, 403359456, 486440752, 386484865]}, "2026": {"4": [1543792891, 1154569000, 989260961, 1004770453, 993218000, 1175174331, 0, 0, 0, 0, 0, 0], "5": [292344866, 383135297, 434601668, 519636766, 367759683, 757577798, 0, 0, 0, 0, 0, 0], "6": [33768304, 49000409, 47266247, 48041167, 53035880, 45903716, 0, 0, 0, 0, 0, 0], "7": [244612376, 490222265, 521160743, 452868099, 494544380, 411245335, 0, 0, 0, 0, 0, 0]}}}, "cuentas": [{"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4160", "nombreCuentaMayor": "ENSEÑANZA", "movimiento": 11079819563}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4175", "nombreCuentaMayor": "DEVOLUCIONES, REBAJAS Y DESCUENTOS EN ACTIVIDADES EDUC. (DB)", "movimiento": -1961273817}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4205", "nombreCuentaMayor": "OTRAS VENTAS", "movimiento": 176078460}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4210", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 91741629}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4250", "nombreCuentaMayor": "RECUPERACIONES", "movimiento": 35920000}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4255", "nombreCuentaMayor": "INDEMNIZACIONES", "movimiento": 2155171}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4295", "nombreCuentaMayor": "OTROS", "movimiento": 87794553}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5105", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 1041370082}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5110", "nombreCuentaMayor": "HONORARIOS", "movimiento": 57867338}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5115", "nombreCuentaMayor": "IMPUESTOS", "movimiento": 97272015}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5120", "nombreCuentaMayor": "ARRENDAMIENTOS", "movimiento": 769230800}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5125", "nombreCuentaMayor": "CONTRIBUCIONES Y AFILIACIONES", "movimiento": 15472852}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5130", "nombreCuentaMayor": "SEGUROS", "movimiento": 5388785}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5135", "nombreCuentaMayor": "SERVICIOS", "movimiento": 526566143}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5140", "nombreCuentaMayor": "GASTOS LEGALES", "movimiento": 3723500}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5145", "nombreCuentaMayor": "MANTENIMIENTO Y REPARACIONES", "movimiento": 131929959}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5150", "nombreCuentaMayor": "ADECUACION E INSTALACION", "movimiento": 236201356}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5155", "nombreCuentaMayor": "GASTOS DE VIAJE", "movimiento": 1450000}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5160", "nombreCuentaMayor": "DEPRECIACIONES", "movimiento": 39893421}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5195", "nombreCuentaMayor": "DIVERSOS", "movimiento": 129416463}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5199", "nombreCuentaMayor": "PROVISION DE CARTERA", "movimiento": 14744169}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5305", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 225147196}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5315", "nombreCuentaMayor": "GASTOS EXTRAORDINARIOS", "movimiento": 1207484}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5395", "nombreCuentaMayor": "GASTOS DIVERSOS", "movimiento": 16017906}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5405", "nombreCuentaMayor": "IMPUESTO DE RENTA Y COMPLEMENTARIOS", "movimiento": 223283000}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "6", "nombreClase": "COSTOS DE VENTAS", "cuentaMayor": "6205", "nombreCuentaMayor": "DE MERCANCIAS", "movimiento": 394132657}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "6", "nombreClase": "COSTOS DE VENTAS", "cuentaMayor": "6210", "nombreCuentaMayor": "OTRAS COMPRAS", "movimiento": 1991653}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7205", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 2469083829}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7305", "nombreCuentaMayor": "COSTOS INDIRECTOS", "movimiento": 2646014450}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7405", "nombreCuentaMayor": "CONTRATOS DE SERVICIOS", "movimiento": 52092838}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4160", "nombreCuentaMayor": "ENSEÑANZA", "movimiento": 7642230561}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4175", "nombreCuentaMayor": "DEVOLUCIONES, REBAJAS Y DESCUENTOS EN ACTIVIDADES EDUC. (DB)", "movimiento": -1465282298}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4205", "nombreCuentaMayor": "OTRAS VENTAS", "movimiento": 145432609}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4210", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 40295728}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4250", "nombreCuentaMayor": "RECUPERACIONES", "movimiento": 27184685}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4255", "nombreCuentaMayor": "INDEMNIZACIONES", "movimiento": 14426230}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4295", "nombreCuentaMayor": "OTROS", "movimiento": 42460028}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5105", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 695875635}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5110", "nombreCuentaMayor": "HONORARIOS", "movimiento": 58238639}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5115", "nombreCuentaMayor": "IMPUESTOS", "movimiento": 75371850}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5120", "nombreCuentaMayor": "ARRENDAMIENTOS", "movimiento": 406028989}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5125", "nombreCuentaMayor": "CONTRIBUCIONES Y AFILIACIONES", "movimiento": 13454505}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5130", "nombreCuentaMayor": "SEGUROS", "movimiento": 1076106}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5135", "nombreCuentaMayor": "SERVICIOS", "movimiento": 221273366}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5145", "nombreCuentaMayor": "MANTENIMIENTO Y REPARACIONES", "movimiento": 20774636}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5150", "nombreCuentaMayor": "ADECUACION E INSTALACION", "movimiento": 108688040}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5160", "nombreCuentaMayor": "DEPRECIACIONES", "movimiento": 19241778}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5195", "nombreCuentaMayor": "DIVERSOS", "movimiento": 54131569}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5305", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 86537833}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5315", "nombreCuentaMayor": "GASTOS EXTRAORDINARIOS", "movimiento": 3983564}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5395", "nombreCuentaMayor": "GASTOS DIVERSOS", "movimiento": 868652}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "6", "nombreClase": "COSTOS DE VENTAS", "cuentaMayor": "6205", "nombreCuentaMayor": "DE MERCANCIAS", "movimiento": 230551434}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "6", "nombreClase": "COSTOS DE VENTAS", "cuentaMayor": "6210", "nombreCuentaMayor": "OTRAS COMPRAS", "movimiento": 597950}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7205", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 1481855360}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7305", "nombreCuentaMayor": "COSTOS INDIRECTOS", "movimiento": 1090560379}, {"empresa": "CORPORACION LICEO LA SABANA", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7405", "nombreCuentaMayor": "CONTRATOS DE SERVICIOS", "movimiento": 53939700}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4160", "nombreCuentaMayor": "Enseñanza", "movimiento": 17147319929}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4175", "nombreCuentaMayor": "Devolución en ventas", "movimiento": -2620306848}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4210", "nombreCuentaMayor": "Financieros", "movimiento": 68349252}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4250", "nombreCuentaMayor": "Recuperaciones", "movimiento": 97648324}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4295", "nombreCuentaMayor": "Diversos", "movimiento": 498967309}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5105", "nombreCuentaMayor": "Gastos de personal", "movimiento": 2049482507}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5110", "nombreCuentaMayor": "Honorarios", "movimiento": 87968534}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5115", "nombreCuentaMayor": "Impuestos", "movimiento": 504586202}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5120", "nombreCuentaMayor": "Arrendamientos", "movimiento": 28281466}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5125", "nombreCuentaMayor": "Contribuciones y afiliaciones", "movimiento": 12408467}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5130", "nombreCuentaMayor": "Seguros", "movimiento": 2535042}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5135", "nombreCuentaMayor": "Servicios", "movimiento": 430630491}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5140", "nombreCuentaMayor": "Gastos legales", "movimiento": 13513935}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5145", "nombreCuentaMayor": "Mantenimiento y reparaciones", "movimiento": 303844945}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5150", "nombreCuentaMayor": "Adecuación e instalación", "movimiento": 211500}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5155", "nombreCuentaMayor": "Gastos de viaje", "movimiento": 1381363}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5160", "nombreCuentaMayor": "Depreciaciones", "movimiento": 65605572}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5195", "nombreCuentaMayor": "Diversos", "movimiento": 54161254}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5199", "nombreCuentaMayor": "Otros gastos", "movimiento": 407185}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5205", "nombreCuentaMayor": "Gastos de personal", "movimiento": 0}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5235", "nombreCuentaMayor": "Servicios", "movimiento": 0}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5305", "nombreCuentaMayor": "Financieros", "movimiento": 2550233974}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5315", "nombreCuentaMayor": "Gastos extraordinarios", "movimiento": 22820}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5395", "nombreCuentaMayor": "Gastos diversos", "movimiento": 7852533}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5405", "nombreCuentaMayor": "Impuesto de renta y complementarios", "movimiento": 2486079}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "6", "nombreClase": "COSTO DE VENTAS", "cuentaMayor": "6205", "nombreCuentaMayor": "De Mercancias", "movimiento": 706670980}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7205", "nombreCuentaMayor": "Mano de obra directa", "movimiento": 3540104618}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7305", "nombreCuentaMayor": "Costos indirectos", "movimiento": 33190194}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7310", "nombreCuentaMayor": "Honorarios", "movimiento": 27582282}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7320", "nombreCuentaMayor": "Arrendamientos", "movimiento": 444417642}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7325", "nombreCuentaMayor": "Contribuciones y afiliaciones", "movimiento": 30486460}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7335", "nombreCuentaMayor": "Servicios", "movimiento": 3034560115}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7345", "nombreCuentaMayor": "Mantenimiento y reparaciones", "movimiento": 30266400}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7350", "nombreCuentaMayor": "Adecuación e instalación", "movimiento": 59900}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7395", "nombreCuentaMayor": "Diversos", "movimiento": 1184605359}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2025, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7405", "nombreCuentaMayor": "Contratos de servicios", "movimiento": 17193000}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4135", "nombreCuentaMayor": "Comercio al por mayor y al detal", "movimiento": 563932}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4160", "nombreCuentaMayor": "Enseñanza", "movimiento": 9529213698}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4175", "nombreCuentaMayor": "Devolución en ventas", "movimiento": -1640023095}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4210", "nombreCuentaMayor": "Financieros", "movimiento": 13243450}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4250", "nombreCuentaMayor": "Recuperaciones", "movimiento": 42458474}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "4", "nombreClase": "INGRESO", "cuentaMayor": "4295", "nombreCuentaMayor": "Diversos", "movimiento": 443673301}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5105", "nombreCuentaMayor": "Gastos de personal", "movimiento": 1249269573}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5110", "nombreCuentaMayor": "Honorarios", "movimiento": 46424660}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5115", "nombreCuentaMayor": "Impuestos", "movimiento": 218548675}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5120", "nombreCuentaMayor": "Arrendamientos", "movimiento": 20304374}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5135", "nombreCuentaMayor": "Servicios", "movimiento": 155413694}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5140", "nombreCuentaMayor": "Gastos legales", "movimiento": 13881100}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5145", "nombreCuentaMayor": "Mantenimiento y reparaciones", "movimiento": 218375022}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5150", "nombreCuentaMayor": "Adecuación e instalación", "movimiento": 10000}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5155", "nombreCuentaMayor": "Gastos de viaje", "movimiento": 60800}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5160", "nombreCuentaMayor": "Depreciaciones", "movimiento": 34229250}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5195", "nombreCuentaMayor": "Diversos", "movimiento": 29731474}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5235", "nombreCuentaMayor": "Servicios", "movimiento": 44315350}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5305", "nombreCuentaMayor": "Financieros", "movimiento": 1355597444}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5315", "nombreCuentaMayor": "Gastos extraordinarios", "movimiento": -230506}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "5", "nombreClase": "GASTO", "cuentaMayor": "5395", "nombreCuentaMayor": "Gastos diversos", "movimiento": 4709712}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "6", "nombreClase": "COSTO DE VENTAS", "cuentaMayor": "6205", "nombreCuentaMayor": "De Mercancias", "movimiento": 338861197}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7205", "nombreCuentaMayor": "Mano de obra directa", "movimiento": 1579172132}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7305", "nombreCuentaMayor": "Costos indirectos", "movimiento": 30192021}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7310", "nombreCuentaMayor": "Honorarios", "movimiento": 7543155}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7320", "nombreCuentaMayor": "Arrendamientos", "movimiento": 7758610}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7325", "nombreCuentaMayor": "Contribuciones y afiliaciones", "movimiento": 6626906}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7335", "nombreCuentaMayor": "Servicios", "movimiento": 1517751541}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7345", "nombreCuentaMayor": "Mantenimiento y reparaciones", "movimiento": 6030829}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7395", "nombreCuentaMayor": "Diversos", "movimiento": 665179916}, {"empresa": "GIMNASIO SAN ANGELO SAS", "anio": 2026, "clase": "7", "nombreClase": "COSTO DE SERVICIOS", "cuentaMayor": "7405", "nombreCuentaMayor": "Contratos de servicios", "movimiento": 9017000}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4160", "nombreCuentaMayor": "ENSEÑANZA", "movimiento": 10197918052}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4210", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 177225769}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4250", "nombreCuentaMayor": "RECUPERACIONES", "movimiento": 69870740}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4295", "nombreCuentaMayor": "DIVERSOS", "movimiento": 3829567}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5105", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 1747107140}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5110", "nombreCuentaMayor": "HONORARIOS", "movimiento": 56395088}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5115", "nombreCuentaMayor": "IMPUESTOS", "movimiento": 156802182}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5120", "nombreCuentaMayor": "ARRENDAMIENTOS", "movimiento": 174469720}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5130", "nombreCuentaMayor": "SEGUROS", "movimiento": 85270955}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5135", "nombreCuentaMayor": "SERVICIOS", "movimiento": 645467927}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5140", "nombreCuentaMayor": "GASTOS LEGALES", "movimiento": 4632800}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5145", "nombreCuentaMayor": "MANTENIMIENTO Y REPARACIONES", "movimiento": 85782165}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5150", "nombreCuentaMayor": "ADECUACION E INSTALACION", "movimiento": 459087848}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5155", "nombreCuentaMayor": "GASTOS DE VIAJE", "movimiento": 142425516}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5160", "nombreCuentaMayor": "DEPRECIACIONES", "movimiento": 239770791}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5195", "nombreCuentaMayor": "DIVERSOS", "movimiento": 323529242}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5305", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 382057091}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5310", "nombreCuentaMayor": "PERDIDA EN VENTA Y RETIRO DE BIENES", "movimiento": 2900000}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5315", "nombreCuentaMayor": "GASTOS EXTRAORDINARIOS", "movimiento": 11270809}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5395", "nombreCuentaMayor": "GASTOS DIVERSOS", "movimiento": 19992030}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5405", "nombreCuentaMayor": "IMPUESTO DE RENTA Y COMPLEMENTARIOS", "movimiento": 323222000}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "6", "nombreClase": "COSTOS DE VENTAS", "cuentaMayor": "6205", "nombreCuentaMayor": "DE MERCANCIAS", "movimiento": 510830190}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7205", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 2596428837}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7330", "nombreCuentaMayor": "SEGUROS", "movimiento": 19419999}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7335", "nombreCuentaMayor": "SERVICIOS", "movimiento": 8492108}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7393", "nombreCuentaMayor": "DIVERSOS CAFETERIA", "movimiento": 17382711}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7394", "nombreCuentaMayor": "ACTIVIDADES ACADEMICAS", "movimiento": 132017974}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7395", "nombreCuentaMayor": "DIVERSOS", "movimiento": 7311951}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7396", "nombreCuentaMayor": "MATERIALES", "movimiento": 335698414}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7410", "nombreCuentaMayor": "SERVICIOS PERSONALES", "movimiento": 244346615}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2025, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7435", "nombreCuentaMayor": "SERVICIOS", "movimiento": 1180468413}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4160", "nombreCuentaMayor": "ENSEÑANZA", "movimiento": 6756428245}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4210", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 66358415}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4235", "nombreCuentaMayor": "SERVICIOS", "movimiento": 688750}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4250", "nombreCuentaMayor": "RECUPERACIONES", "movimiento": 37308762}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "4", "nombreClase": "INGRESOS", "cuentaMayor": "4295", "nombreCuentaMayor": "DIVERSOS", "movimiento": 1463}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5105", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 943935958}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5110", "nombreCuentaMayor": "HONORARIOS", "movimiento": 36977683}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5115", "nombreCuentaMayor": "IMPUESTOS", "movimiento": 132186817}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5120", "nombreCuentaMayor": "ARRENDAMIENTOS", "movimiento": 122439055}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5130", "nombreCuentaMayor": "SEGUROS", "movimiento": 13251801}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5135", "nombreCuentaMayor": "SERVICIOS", "movimiento": 336003925}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5140", "nombreCuentaMayor": "GASTOS LEGALES", "movimiento": 5107600}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5145", "nombreCuentaMayor": "MANTENIMIENTO Y REPARACIONES", "movimiento": 28950898}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5150", "nombreCuentaMayor": "ADECUACION E INSTALACION", "movimiento": 522671674}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5155", "nombreCuentaMayor": "GASTOS DE VIAJE", "movimiento": 52231861}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5160", "nombreCuentaMayor": "DEPRECIACIONES", "movimiento": 119885396}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5195", "nombreCuentaMayor": "DIVERSOS", "movimiento": 230833673}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5305", "nombreCuentaMayor": "FINANCIEROS", "movimiento": 210598299}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5315", "nombreCuentaMayor": "GASTOS EXTRAORDINARIOS", "movimiento": -20331}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "5", "nombreClase": "GASTOS", "cuentaMayor": "5395", "nombreCuentaMayor": "GASTOS DIVERSOS", "movimiento": 1769}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "6", "nombreClase": "COSTOS DE VENTAS", "cuentaMayor": "6205", "nombreCuentaMayor": "DE MERCANCIAS", "movimiento": 277015723}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7205", "nombreCuentaMayor": "GASTOS DE PERSONAL", "movimiento": 1516411247}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7330", "nombreCuentaMayor": "SEGUROS", "movimiento": 23495000}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7335", "nombreCuentaMayor": "SERVICIOS", "movimiento": 17210119}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7393", "nombreCuentaMayor": "DIVERSOS CAFETERIA", "movimiento": 3665693}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7394", "nombreCuentaMayor": "ACTIVIDADES ACADEMICAS", "movimiento": 1985937}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7395", "nombreCuentaMayor": "DIVERSOS", "movimiento": 2674365}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7396", "nombreCuentaMayor": "MATERIALES", "movimiento": 214681833}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7410", "nombreCuentaMayor": "SERVICIOS PERSONALES", "movimiento": 128649567}, {"empresa": "JARDIN CAMPESTRE DEL NORTE S.A.S.", "anio": 2026, "clase": "7", "nombreClase": "COSTOS DE PRODUCCION O DE OPERACION", "cuentaMayor": "7435", "nombreCuentaMayor": "SERVICIOS", "movimiento": 705879437}], "claseLabels": {"4": "Ingresos", "5": "Gastos administrativos", "6": "Costo de ventas", "7": "Costo de servicios"}, "claseIngresos": ["4"], "clasesGastos": ["5", "6", "7"], "meses": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"], "chartTypes": {"general": "bar", "ingresos": "line", "utilidades": "bar", "ivsg": "bar", "comparativo": "bar"}};
+const ACCENT = "#275CAB";
+const ACCENT_DARK = "#193B6F";
+const GASTO_COLOR = "#9A5A28";
 
-const meses = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-const clases = {
-  "4": {nombre:"Ingresos", tipo:"ingreso"},
-  "5": {nombre:"Gastos administrativos", tipo:"gasto"},
-  "6": {nombre:"Costo de ventas", tipo:"gasto"},
-  "7": {nombre:"Costo de servicios", tipo:"gasto"}
-};
-const empresas = Object.keys(DATA);
 const fmt = n => "$" + Math.round(n).toLocaleString("es-CO");
-const fmtPct = n => (n>=0?"+":"") + (n*100).toFixed(1) + "%";
+const fmtPct = n => (isFinite(n) ? (n>=0?"+":"") + (n*100).toFixed(1) + "%" : "—");
+const sum = arr => arr.reduce((a,b)=>a+b,0);
+const nombreEmpresa = emp => DATA.empresasDisplay[emp] || emp;
 
-let chart = null;
-let activeEmpresa = empresas[0];
-
-function sum(arr){ return arr.reduce((a,b)=>a+b,0); }
-
-function render(empresa){
-  activeEmpresa = empresa;
-  document.querySelectorAll('.entity-tabs button').forEach(b=>{
-    b.classList.toggle('active', b.dataset.empresa === empresa);
-  });
-
-  const d26 = DATA[empresa]["2026"];
-  const d25 = DATA[empresa]["2025"];
-
-  const ingresos26 = sum(d26["4"]);
-  const ingresos25 = sum(d25["4"]);
-  const gastos26 = sum(d26["5"]) + sum(d26["6"]) + sum(d26["7"]);
-  const gastos25 = sum(d25["5"]) + sum(d25["6"]) + sum(d25["7"]);
-
-  document.getElementById("kpiIngresos").textContent = fmt(ingresos26);
-  document.getElementById("kpiIngresosSub").textContent = fmtPct((ingresos26-ingresos25)/ingresos25) + " vs. 2025";
-  document.getElementById("kpiGastos").textContent = fmt(gastos26);
-  document.getElementById("kpiGastosSub").textContent = fmtPct((gastos26-gastos25)/gastos25) + " vs. 2025";
-  document.getElementById("kpiResultado").textContent = fmt(ingresos26-gastos26);
-
-  // Chart: monthly ingresos vs gastos (2026, meses con datos)
-  const mesesConDatos = meses.filter((m,i)=> d26["4"][i] !== 0 || sum(["5","6","7"].map(c=>d26[c][i])) !== 0);
-  const idxConDatos = mesesConDatos.map(m=>meses.indexOf(m));
-  const ingresosSerie = idxConDatos.map(i=>d26["4"][i]);
-  const gastosSerie = idxConDatos.map(i=> d26["5"][i]+d26["6"][i]+d26["7"][i]);
-
-  if(chart) chart.destroy();
-  chart = new Chart(document.getElementById("chartMensual"), {
-    type:"bar",
-    data:{
-      labels: mesesConDatos,
-      datasets:[
-        {label:"Ingresos", data: ingresosSerie, backgroundColor:"#1F6D3F", borderRadius:3},
-        {label:"Gastos totales", data: gastosSerie, backgroundColor:"#9A5A28", borderRadius:3}
-      ]
-    },
-    options:{
-      responsive:true,
-      plugins:{ legend:{ position:"bottom", labels:{ font:{family:"IBM Plex Mono", size:11} } } },
-      scales:{
-        y:{ ticks:{ callback:v=>"$"+(v/1e6).toFixed(0)+"M", font:{family:"IBM Plex Mono", size:10} }, grid:{color:"#DCE5DC"} },
-        x:{ ticks:{ font:{family:"IBM Plex Mono", size:10} }, grid:{display:false} }
-      }
+function sumaClase(dataEmpresaAnio, clases){
+  return clases.reduce((acc,c)=> acc + (dataEmpresaAnio[c] ? sum(dataEmpresaAnio[c]) : 0), 0);
+}
+function serieClase(dataEmpresaAnio, clases){
+  const out = new Array(12).fill(0);
+  clases.forEach(c=>{
+    if(dataEmpresaAnio[c]){
+      dataEmpresaAnio[c].forEach((v,i)=> out[i]+=v);
     }
   });
-
-  // Tabla por clase
-  const tbody = document.getElementById("tablaClases");
-  tbody.innerHTML = "";
-  Object.keys(clases).forEach(c=>{
-    const v26 = sum(d26[c]);
-    const v25 = sum(d25[c]);
-    const variacion = v25 !== 0 ? (v26-v25)/v25 : 0;
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${clases[c].nombre}</td>
-      <td>${fmt(v26)}</td>
-      <td>${fmt(v25)}</td>
-      <td style="color:${variacion>=0 ? (clases[c].tipo==='ingreso'?'#1F6D3F':'#9A5A28') : (clases[c].tipo==='ingreso'?'#9A5A28':'#1F6D3F')}">${fmtPct(variacion)}</td>`;
-    tbody.appendChild(tr);
-  });
-  const trTotal = document.createElement("tr");
-  trTotal.className = "total";
-  trTotal.innerHTML = `
-    <td>Resultado (Ingresos − Gastos)</td>
-    <td>${fmt(ingresos26-gastos26)}</td>
-    <td>${fmt(ingresos25-gastos25)}</td>
-    <td>—</td>`;
-  tbody.appendChild(trTotal);
+  return out;
+}
+function mesesConDatos(serieIngresos, serieGastos){
+  return DATA.meses.filter((m,i)=> serieIngresos[i]!==0 || serieGastos[i]!==0);
 }
 
-// Build entity tabs
-const tabsWrap = document.getElementById("entityTabs");
-empresas.forEach((emp, i)=>{
-  const btn = document.createElement("button");
-  btn.textContent = emp;
-  btn.dataset.empresa = emp;
-  if(i===0) btn.classList.add("active");
-  btn.onclick = ()=>render(emp);
-  tabsWrap.appendChild(btn);
-});
+const anioActual = Math.max(...DATA.anios);
+const anioAnterior = DATA.anios.filter(a=>a!==anioActual).sort((a,b)=>b-a)[0] ?? anioActual;
 
-render(activeEmpresa);
+const charts = {};
+function destroyChart(id){ if(charts[id]){ charts[id].destroy(); delete charts[id]; } }
+
+function chartOptions(prefix){
+  return {
+    responsive: true,
+    plugins: { legend: { position: "bottom", labels: { font: { family: "IBM Plex Mono", size: 11 } } } },
+    scales: {
+      y: { ticks: { callback: v => prefix + (v/1e6).toFixed(0) + "M", font: { family: "IBM Plex Mono", size: 10 } }, grid: { color: "#DCE2DC" } },
+      x: { ticks: { font: { family: "IBM Plex Mono", size: 10 } }, grid: { display: false } }
+    }
+  };
+}
+function shadeColor(hex, index){
+  const palette = [hex, "#5B8C6E", "#134A2A", "#8FBF9F", "#2E7D50", "#0D3820"];
+  return palette[index % palette.length];
+}
+function tipoGrafico(panelId, fallback){
+  return (DATA.chartTypes && DATA.chartTypes[panelId]) || fallback;
+}
+
+/* ============================== PANEL 0: General (con filtros / slicer) ============================== */
+let filtroGeneral = { anio: anioActual, mesDesde: 0, mesHasta: 11 };
+
+function renderPanelGeneral(){
+  const selAnio = document.getElementById("gAnio");
+  const selDesde = document.getElementById("gMesDesde");
+  const selHasta = document.getElementById("gMesHasta");
+
+  if(selAnio.options.length === 0){
+    selAnio.innerHTML = DATA.anios.slice().sort((a,b)=>b-a).map(a=>`<option value="${a}">${a}</option>`).join("");
+    selAnio.value = String(filtroGeneral.anio);
+    DATA.meses.forEach((m,i)=>{
+      selDesde.innerHTML += `<option value="${i}">${m}</option>`;
+      selHasta.innerHTML += `<option value="${i}">${m}</option>`;
+    });
+    selDesde.value = filtroGeneral.mesDesde;
+    selHasta.value = filtroGeneral.mesHasta;
+    selAnio.onchange = ()=>{ filtroGeneral.anio = parseInt(selAnio.value); renderPanelGeneral(); };
+    selDesde.onchange = ()=>{ filtroGeneral.mesDesde = parseInt(selDesde.value); renderPanelGeneral(); };
+    selHasta.onchange = ()=>{ filtroGeneral.mesHasta = parseInt(selHasta.value); renderPanelGeneral(); };
+  }
+
+  const desde = Math.min(filtroGeneral.mesDesde, filtroGeneral.mesHasta);
+  const hasta = Math.max(filtroGeneral.mesDesde, filtroGeneral.mesHasta);
+  const anio = filtroGeneral.anio;
+  const rangoMeses = DATA.meses.slice(desde, hasta+1);
+
+  let totalIngresos = 0, totalGastos = 0;
+  const porEmpresa = DATA.empresas.map(emp=>{
+    const d = DATA.mensual[emp][String(anio)] || {};
+    const ing = serieClase(d, DATA.claseIngresos).slice(desde, hasta+1);
+    const gas = serieClase(d, DATA.clasesGastos).slice(desde, hasta+1);
+    const totalIng = sum(ing), totalGas = sum(gas);
+    totalIngresos += totalIng; totalGastos += totalGas;
+    return { emp, ing, gas, totalIng, totalGas };
+  });
+
+  const kpiWrap = document.getElementById("kpi-general");
+  kpiWrap.innerHTML = `
+    <div class="kpi ingreso"><div class="label">Ingresos del grupo</div><div class="value">${fmt(totalIngresos)}</div><div class="sub">${rangoMeses[0]}–${rangoMeses[rangoMeses.length-1]} ${anio}</div></div>
+    <div class="kpi gasto"><div class="label">Gastos del grupo</div><div class="value">${fmt(totalGastos)}</div><div class="sub">${rangoMeses[0]}–${rangoMeses[rangoMeses.length-1]} ${anio}</div></div>
+    <div class="kpi resultado"><div class="label">Utilidad del grupo</div><div class="value">${fmt(totalIngresos-totalGastos)}</div><div class="sub">Periodo seleccionado</div></div>` +
+    porEmpresa.map(p=>`
+      <div class="kpi resultado"><div class="label">${nombreEmpresa(p.emp)}</div><div class="value">${fmt(p.totalIng-p.totalGas)}</div><div class="sub">Utilidad del periodo</div></div>
+    `).join("");
+
+  destroyChart("chartGeneral");
+  const tipo = tipoGrafico("general", "bar");
+  charts["chartGeneral"] = new Chart(document.getElementById("chartGeneral"), {
+    type: tipo,
+    data: {
+      labels: rangoMeses,
+      datasets: porEmpresa.map((p,i)=>({
+        label: nombreEmpresa(p.emp),
+        data: p.ing,
+        backgroundColor: tipo==="bar" ? shadeColor(ACCENT,i) : "transparent",
+        borderColor: shadeColor(ACCENT,i),
+        borderRadius: 3,
+        tension: 0.25,
+        pointRadius: 3,
+      }))
+    },
+    options: chartOptions("$")
+  });
+}
+
+/* ============================== PANEL 1: Ingresos por empresa ============================== */
+function renderPanelIngresos(){
+  const kpiWrap = document.getElementById("kpi-ingresos");
+  let totalGrupo = 0;
+  kpiWrap.innerHTML = "";
+  DATA.empresas.forEach(emp=>{
+    const d = DATA.mensual[emp][String(anioActual)] || {};
+    const total = sumaClase(d, DATA.claseIngresos);
+    totalGrupo += total;
+    const div = document.createElement("div");
+    div.className = "kpi ingreso";
+    div.innerHTML = `<div class="label">${nombreEmpresa(emp)}</div><div class="value">${fmt(total)}</div><div class="sub">Ingresos acumulados ${anioActual}</div>`;
+    kpiWrap.appendChild(div);
+  });
+  const totalDiv = document.createElement("div");
+  totalDiv.className = "kpi resultado";
+  totalDiv.innerHTML = `<div class="label">Total grupo</div><div class="value">${fmt(totalGrupo)}</div><div class="sub">Suma de todas las empresas</div>`;
+  kpiWrap.appendChild(totalDiv);
+
+  destroyChart("chartIngresosEmpresas");
+  const tipo = tipoGrafico("ingresos", "line");
+  const datasets = DATA.empresas.map((emp,i)=>{
+    const d = DATA.mensual[emp][String(anioActual)] || {};
+    const serie = serieClase(d, DATA.claseIngresos);
+    return {
+      label: nombreEmpresa(emp),
+      data: serie,
+      borderColor: shadeColor(ACCENT, i),
+      backgroundColor: tipo==="bar" ? shadeColor(ACCENT,i) : "transparent",
+      tension: 0.25,
+      pointRadius: 3,
+      borderRadius: 3,
+    };
+  });
+  charts["chartIngresosEmpresas"] = new Chart(document.getElementById("chartIngresosEmpresas"), {
+    type: tipo,
+    data: { labels: DATA.meses, datasets },
+    options: chartOptions("$")
+  });
+}
+
+/* ============================== PANEL 2: Utilidades ============================== */
+function renderPanelUtilidades(){
+  const kpiWrap = document.getElementById("kpi-utilidades");
+  kpiWrap.innerHTML = "";
+  let totalUtilidad = 0;
+  DATA.empresas.forEach(emp=>{
+    const d = DATA.mensual[emp][String(anioActual)] || {};
+    const ingresos = sumaClase(d, DATA.claseIngresos);
+    const gastos = sumaClase(d, DATA.clasesGastos);
+    const utilidad = ingresos - gastos;
+    totalUtilidad += utilidad;
+    const div = document.createElement("div");
+    div.className = "kpi resultado";
+    div.innerHTML = `<div class="label">${nombreEmpresa(emp)}</div><div class="value">${fmt(utilidad)}</div><div class="sub">Utilidad acumulada ${anioActual}</div>`;
+    kpiWrap.appendChild(div);
+  });
+  const totalDiv = document.createElement("div");
+  totalDiv.className = "kpi resultado";
+  totalDiv.style.borderLeftColor = ACCENT_DARK;
+  totalDiv.innerHTML = `<div class="label">Total grupo</div><div class="value">${fmt(totalUtilidad)}</div><div class="sub">Utilidad consolidada</div>`;
+  kpiWrap.appendChild(totalDiv);
+
+  destroyChart("chartUtilidades");
+  const tipo = tipoGrafico("utilidades", "bar");
+  const datasets = DATA.empresas.map((emp,i)=>{
+    const d = DATA.mensual[emp][String(anioActual)] || {};
+    const ingresos = serieClase(d, DATA.claseIngresos);
+    const gastos = serieClase(d, DATA.clasesGastos);
+    const utilidad = ingresos.map((v,idx)=> v - gastos[idx]);
+    return {
+      label: nombreEmpresa(emp),
+      data: utilidad,
+      backgroundColor: tipo==="bar" ? shadeColor(ACCENT, i) : "transparent",
+      borderColor: shadeColor(ACCENT, i),
+      borderRadius: 3,
+      tension: 0.25,
+      pointRadius: 3,
+    };
+  });
+  charts["chartUtilidades"] = new Chart(document.getElementById("chartUtilidades"), {
+    type: tipo,
+    data: { labels: DATA.meses, datasets },
+    options: chartOptions("$")
+  });
+}
+
+/* ============================== PANEL 3: Ingresos vs Gastos ============================== */
+let empresaSeleccionadaIvsG = DATA.empresas[0];
+function renderPanelIvsG(){
+  const tabsWrap = document.getElementById("entity-tabs-ivsg");
+  tabsWrap.innerHTML = "";
+  DATA.empresas.forEach(emp=>{
+    const btn = document.createElement("button");
+    btn.textContent = nombreEmpresa(emp);
+    if(emp === empresaSeleccionadaIvsG) btn.classList.add("active");
+    btn.onclick = ()=>{ empresaSeleccionadaIvsG = emp; renderPanelIvsG(); };
+    tabsWrap.appendChild(btn);
+  });
+
+  const d = DATA.mensual[empresaSeleccionadaIvsG][String(anioActual)] || {};
+  const ingresos = serieClase(d, DATA.claseIngresos);
+  const gastos = serieClase(d, DATA.clasesGastos);
+
+  const kpiWrap = document.getElementById("kpi-ivsg");
+  const totalIng = sum(ingresos), totalGas = sum(gastos);
+  kpiWrap.innerHTML = `
+    <div class="kpi ingreso"><div class="label">Ingresos ${anioActual}</div><div class="value">${fmt(totalIng)}</div></div>
+    <div class="kpi gasto"><div class="label">Gastos ${anioActual}</div><div class="value">${fmt(totalGas)}</div></div>
+    <div class="kpi resultado"><div class="label">Resultado</div><div class="value">${fmt(totalIng-totalGas)}</div></div>`;
+
+  destroyChart("chartIvsG");
+  const meses = mesesConDatos(ingresos, gastos);
+  const idxs = meses.map(m=>DATA.meses.indexOf(m));
+  const tipo = tipoGrafico("ivsg", "bar");
+  charts["chartIvsG"] = new Chart(document.getElementById("chartIvsG"), {
+    type: tipo,
+    data: {
+      labels: meses,
+      datasets: [
+        { label: "Ingresos", data: idxs.map(i=>ingresos[i]), backgroundColor: ACCENT, borderColor: ACCENT, borderRadius: 3, tension:0.25 },
+        { label: "Gastos", data: idxs.map(i=>gastos[i]), backgroundColor: GASTO_COLOR, borderColor: GASTO_COLOR, borderRadius: 3, tension:0.25 },
+      ]
+    },
+    options: chartOptions("$")
+  });
+}
+
+/* ============================== PANEL 4: Comparativo años anteriores ============================== */
+let empresaSeleccionadaComp = "__TODAS__";
+function renderPanelComparativo(){
+  const tabsWrap = document.getElementById("entity-tabs-comp");
+  tabsWrap.innerHTML = "";
+  const btnTodas = document.createElement("button");
+  btnTodas.textContent = "Todas las empresas";
+  btnTodas.className = "todas";
+  if(empresaSeleccionadaComp === "__TODAS__") btnTodas.classList.add("active");
+  btnTodas.onclick = ()=>{ empresaSeleccionadaComp = "__TODAS__"; renderPanelComparativo(); };
+  tabsWrap.appendChild(btnTodas);
+
+  DATA.empresas.forEach(emp=>{
+    const btn = document.createElement("button");
+    btn.textContent = nombreEmpresa(emp);
+    if(emp === empresaSeleccionadaComp) btn.classList.add("active");
+    btn.onclick = ()=>{ empresaSeleccionadaComp = emp; renderPanelComparativo(); };
+    tabsWrap.appendChild(btn);
+  });
+
+  function ingresosPorAnio(anio){
+    if(empresaSeleccionadaComp === "__TODAS__"){
+      const out = new Array(12).fill(0);
+      DATA.empresas.forEach(emp=>{
+        const d = DATA.mensual[emp][String(anio)] || {};
+        serieClase(d, DATA.claseIngresos).forEach((v,i)=> out[i]+=v);
+      });
+      return out;
+    }
+    const d = DATA.mensual[empresaSeleccionadaComp][String(anio)] || {};
+    return serieClase(d, DATA.claseIngresos);
+  }
+
+  const serieActual = ingresosPorAnio(anioActual);
+  const serieAnterior = ingresosPorAnio(anioAnterior);
+  const totalActual = sum(serieActual), totalAnterior = sum(serieAnterior);
+
+  const kpiWrap = document.getElementById("kpi-comp");
+  kpiWrap.innerHTML = `
+    <div class="kpi ingreso"><div class="label">Ingresos ${anioActual}</div><div class="value">${fmt(totalActual)}</div></div>
+    <div class="kpi ingreso"><div class="label">Ingresos ${anioAnterior}</div><div class="value">${fmt(totalAnterior)}</div></div>
+    <div class="kpi resultado"><div class="label">Variación</div><div class="value">${fmtPct((totalActual-totalAnterior)/totalAnterior)}</div></div>`;
+
+  destroyChart("chartComparativo");
+  const tipo = tipoGrafico("comparativo", "bar");
+  charts["chartComparativo"] = new Chart(document.getElementById("chartComparativo"), {
+    type: tipo,
+    data: {
+      labels: DATA.meses,
+      datasets: [
+        { label: String(anioAnterior), data: serieAnterior, backgroundColor: "#C9D6C9", borderColor:"#9CB39C", borderRadius: 3, tension:0.25 },
+        { label: String(anioActual), data: serieActual, backgroundColor: ACCENT, borderColor: ACCENT, borderRadius: 3, tension:0.25 },
+      ]
+    },
+    options: chartOptions("$")
+  });
+}
+
+/* ============================== PANEL 5: Detalle por cuenta ============================== */
+function renderPanelDetalle(){
+  const selEmpresa = document.getElementById("filtroEmpresa");
+  const selClase = document.getElementById("filtroClase");
+  const selAnio = document.getElementById("filtroAnio");
+  const buscar = document.getElementById("filtroBuscar");
+
+  if(selEmpresa.options.length === 0){
+    selEmpresa.innerHTML = `<option value="">Todas las empresas</option>` +
+      DATA.empresas.map(e=>`<option value="${e}">${nombreEmpresa(e)}</option>`).join("");
+    selClase.innerHTML = `<option value="">Todas las clases</option>` +
+      Object.entries(DATA.claseLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join("");
+    selAnio.innerHTML = DATA.anios.slice().sort((a,b)=>b-a).map(a=>`<option value="${a}">${a}</option>`).join("");
+    selAnio.value = String(anioActual);
+    [selEmpresa, selClase, selAnio].forEach(el=> el.onchange = renderTablaDetalle);
+    buscar.oninput = renderTablaDetalle;
+  }
+  renderTablaDetalle();
+}
+
+function renderTablaDetalle(){
+  const empresa = document.getElementById("filtroEmpresa").value;
+  const clase = document.getElementById("filtroClase").value;
+  const anio = document.getElementById("filtroAnio").value;
+  const texto = document.getElementById("filtroBuscar").value.toLowerCase();
+
+  let filas = DATA.cuentas.filter(r=>
+    (!empresa || r.empresa === empresa) &&
+    (!clase || r.clase === clase) &&
+    (!anio || String(r.anio) === anio) &&
+    (!texto || r.nombreCuentaMayor.toLowerCase().includes(texto) || r.cuentaMayor.includes(texto))
+  );
+  filas.sort((a,b)=> Math.abs(b.movimiento) - Math.abs(a.movimiento));
+
+  const tbody = document.getElementById("tablaDetalle");
+  tbody.innerHTML = filas.slice(0, 200).map(r=>`
+    <tr>
+      <td>${nombreEmpresa(r.empresa)}</td>
+      <td>${r.cuentaMayor}</td>
+      <td>${r.nombreCuentaMayor}</td>
+      <td>${r.nombreClase}</td>
+      <td>${fmt(r.movimiento)}</td>
+    </tr>`).join("");
+
+  if(filas.length === 0){
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--ink-soft);">Sin resultados para este filtro.</td></tr>`;
+  }
+}
+
+/* ============================== Navegación de pestañas principales ============================== */
+const PANELS = [
+  { id: "general", label: "Panel General", render: renderPanelGeneral },
+  { id: "ingresos", label: "Ingresos por empresa", render: renderPanelIngresos },
+  { id: "utilidades", label: "Utilidades", render: renderPanelUtilidades },
+  { id: "ivsg", label: "Ingresos vs. gastos", render: renderPanelIvsG },
+  { id: "comparativo", label: "Comparativo años anteriores", render: renderPanelComparativo },
+  { id: "detalle", label: "Detalle por cuenta", render: renderPanelDetalle },
+];
+
+const PANEL_HTML = {
+  general: `
+    <div class="filter-bar">
+      <div class="filter-group"><label>Año</label><select id="gAnio"></select></div>
+      <div class="filter-group"><label>Mes desde</label><select id="gMesDesde"></select></div>
+      <div class="filter-group"><label>Mes hasta</label><select id="gMesHasta"></select></div>
+    </div>
+    <div class="kpis" id="kpi-general"></div>
+    <section><h2>Ingresos por empresa en el periodo seleccionado</h2>
+      <div class="chart-card"><canvas id="chartGeneral"></canvas></div>
+    </section>`,
+  ingresos: `
+    <div class="kpis" id="kpi-ingresos"></div>
+    <section><h2>Ingresos mensuales por empresa</h2>
+      <div class="chart-card"><canvas id="chartIngresosEmpresas"></canvas></div>
+    </section>`,
+  utilidades: `
+    <div class="kpis" id="kpi-utilidades"></div>
+    <section><h2>Utilidad mensual por empresa</h2>
+      <div class="chart-card"><canvas id="chartUtilidades"></canvas></div>
+    </section>`,
+  ivsg: `
+    <div class="entity-tabs" id="entity-tabs-ivsg"></div>
+    <div class="kpis" id="kpi-ivsg"></div>
+    <section><h2>Ingresos vs. gastos por mes</h2>
+      <div class="chart-card"><canvas id="chartIvsG"></canvas></div>
+    </section>`,
+  comparativo: `
+    <div class="entity-tabs" id="entity-tabs-comp"></div>
+    <div class="kpis" id="kpi-comp"></div>
+    <section><h2>Ingresos por mes — comparación entre años</h2>
+      <div class="chart-card"><canvas id="chartComparativo"></canvas></div>
+    </section>`,
+  detalle: `
+    <section>
+      <h2>Detalle por cuenta</h2>
+      <div class="filters">
+        <select id="filtroEmpresa"></select>
+        <select id="filtroClase"></select>
+        <select id="filtroAnio"></select>
+        <input id="filtroBuscar" type="text" placeholder="Buscar cuenta...">
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>Empresa</th><th>Cuenta</th><th>Nombre cuenta</th><th>Clase</th><th>Movimiento</th></tr></thead>
+          <tbody id="tablaDetalle"></tbody>
+        </table>
+      </div>
+    </section>`,
+};
+
+function initTabs(){
+  const tabsWrap = document.getElementById("mainTabs");
+  const panelsWrap = document.getElementById("panels");
+
+  PANELS.forEach((p, i) => {
+    const btn = document.createElement("button");
+    btn.textContent = p.label;
+    if (i === 0) btn.classList.add("active");
+    btn.onclick = () => activarPanel(p.id);
+    tabsWrap.appendChild(btn);
+
+    const div = document.createElement("div");
+    div.className = "panel" + (i === 0 ? " active" : "");
+    div.id = "panel-" + p.id;
+    div.innerHTML = PANEL_HTML[p.id];
+    panelsWrap.appendChild(div);
+  });
+
+  PANELS[0].render();
+}
+
+function activarPanel(id){
+  document.querySelectorAll(".tabs button").forEach((b,i)=> b.classList.toggle("active", PANELS[i].id === id));
+  document.querySelectorAll(".panel").forEach(p=> p.classList.toggle("active", p.id === "panel-"+id));
+  const panel = PANELS.find(p=>p.id===id);
+  if(panel) panel.render();
+}
+
+initTabs();
 </script>
 </body>
 </html>
